@@ -6,13 +6,6 @@
 #@ data.values.supported_workloads or assert.fail("missing supported_workloads")
 #@ len(data.values.supported_workloads) or assert.fail("one or more supported_workloads should be supplied")
 
-#@ def config_writer():
-#@   if data.values.gitops.commit_strategy == "pull_request":
-#@     return "config-writer-and-pull-requester-template"
-#@   end
-#@   return "config-writer-template"
-#@ end
-
 #@ def publisher_sa_name():
 #@   if hasattr(data.values.scanning.service_account, "publisher"):
 #@     return data.values.scanning.service_account.publisher
@@ -153,28 +146,14 @@ spec:
       - resource: image-provider
         name: image
 
-  - name: config-provider
+  - name: update-helm-image
     templateRef:
-      kind: ClusterConfigTemplate
-      name: config-template
+      kind: ClusterTemplate
+      name: helm-writer-template
     params:
       - name: serviceAccount
         default: #@ data.values.service_account
     images:
     - resource: image-scanner
       name: image
-
-  
-  - name: config-writer
-    templateRef:
-      kind: ClusterConfigTemplate #! ootb this is ClusterTemplate
-      name: #@ config_writer()
-    params:
-      - name: serviceAccount
-        default: #@ data.values.service_account
-      - name: registry
-        value: #@ data.values.registry
-    configs:
-      - resource: config-provider
-        name: config
 
