@@ -1,0 +1,180 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:assert", "assert")
+
+#@ data.values.registry.server or assert.fail("missing registry.server")
+#@ data.values.registry.repository or assert.fail("missing registry.repository")
+#@ data.values.supported_workloads or assert.fail("missing supported_workloads")
+#@ len(data.values.supported_workloads) or assert.fail("one or more supported_workloads should be supplied")
+
+#@ def config_writer():
+#@   if data.values.gitops.commit_strategy == "pull_request":
+#@     return "config-writer-and-pull-requester-template"
+#@   end
+#@   return "config-writer-template"
+#@ end
+
+#@ def publisher_sa_name():
+#@   if hasattr(data.values.scanning.service_account, "publisher"):
+#@     return data.values.scanning.service_account.publisher
+#@   end
+#@   return data.values.service_account
+#@ end
+
+#@ def scanner_sa_name():
+#@   if hasattr(data.values.scanning.service_account, "scanner"):
+#@     return data.values.scanning.service_account.scanner
+#@   end
+#@   return data.values.service_account
+#@ end
+
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterSupplyChain
+metadata:
+  name: source-sign-scan-to-helm
+spec:
+  selectorMatchExpressions:
+    - key: 'apps.tanzu.vmware.com/workload-type'
+      operator: In
+      values:
+      #@ for supported_workload in data.values.supported_workloads:
+      - #@ supported_workload.type
+      #@ end
+
+  params:
+    - name: ca_cert_data
+      default: #@ data.values.ca_cert_data
+
+    - name: maven_repository_url
+      value: #@ data.values.maven.repository.url
+
+    #@ if "secretRef" in data.values.maven.repository and "name" in data.values.maven.repository.secretRef and data.values.maven.repository.secretRef.name != "":
+    - name: maven_repository_secret_name
+      value: #@ data.values.maven.repository.secretRef.name
+    #@ elif "secret_name" in data.values.maven.repository:
+    #! NOTE: The value "maven.repository.secret_name" is deprecated and must be removed in the future.
+    - name: maven_repository_secret_name
+      value: #@ data.values.maven.repository.secret_name
+    #@ end
+
+    - name: gitops_branch
+      default: #@ data.values.gitops.branch
+    - name: gitops_user_name
+      default: #@ data.values.gitops.username
+    - name: gitops_user_email
+      default: #@ data.values.gitops.email
+    - name: gitops_commit_message
+      default: #@ data.values.gitops.commit_message
+    - name: gitops_ssh_secret
+      default: #@ data.values.gitops.ssh_secret
+    #@ if/end data.values.gitops.repository_prefix:
+    - name: gitops_repository_prefix
+      default: #@ data.values.gitops.repository_prefix
+    #@ if/end data.values.gitops.server_address:
+    - name: gitops_server_address
+      default: #@ data.values.gitops.server_address
+    #@ if/end data.values.gitops.repository_owner:
+    - name: gitops_repository_owner
+      default: #@ data.values.gitops.repository_owner
+    #@ if/end data.values.gitops.repository_name:
+    - name: gitops_repository_name
+      default: #@ data.values.gitops.repository_name
+    #@ if data.values.gitops.pull_request:
+    #@ if/end data.values.gitops.pull_request.server_kind:
+    - name: gitops_server_kind
+      default: #@ data.values.gitops.pull_request.server_kind
+    #@ if/end "commit_branch" in data.values.gitops.pull_request:
+    - name: gitops_commit_branch
+      default: #@ data.values.gitops.pull_request.commit_branch
+    #@ if/end data.values.gitops.pull_request.pull_request_title:
+    - name: gitops_pull_request_title
+      default: #@ data.values.gitops.pull_request.pull_request_title
+    #@ if/end data.values.gitops.pull_request.pull_request_body:
+    - name: gitops_pull_request_body
+      default: #@ data.values.gitops.pull_request.pull_request_body
+    #@ end
+    - name: image_scanning_service_account_publisher
+      value: #@ publisher_sa_name()
+    - name: image_scanning_service_account_scanner
+      default: #@ scanner_sa_name()
+    - name: image_scanning_cli
+      value: #@ data.values.image_scanning_cli
+    - name: image_scanning_workspace_size
+      default: #@ data.values.scanning.workspace.size
+    - name: image_scanning_active_keychains
+      value: #@ data.values.scanning.active_keychains
+    - name: image_scanning_workspace_bindings
+      value: #@ data.values.scanning.workspace.bindings
+    - name: image_scanning_steps_env_vars
+      value: #@ data.values.scanning.steps.env_vars
+
+  resources:
+  - name: source-provider
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: source-template
+    params:
+      - name: serviceAccount
+        default: #@ data.values.service_account
+      - name: gitImplementation
+        default: #@ data.values.git_implementation
+
+  - name: image-provider
+    templateRef:
+      kind: ClusterImageTemplate
+      name: kaniko-template
+    params:
+      - name: serviceAccount
+        default: #@ data.values.service_account
+      - name: registry
+        value: #@ data.values.registry
+      - name: dockerfile
+        default: ./Dockerfile
+      - name: docker_build_context
+        default: ./
+      - name: docker_build_extra_args
+        default: []
+    sources:
+      - resource: source-provider
+        name: source
+
+  - name: image-scanner
+    templateRef:
+      kind: ClusterImageTemplate
+      name: #@ data.values.image_scanner_template_name
+    params:
+      - name: scanning_image_policy
+        default: #@ data.values.scanning.image.policy
+      - name: scanning_image_template
+        default: #@ data.values.scanning.image.template
+      - name: registry
+        value: #@ data.values.registry
+    images:
+      - resource: image-provider
+        name: image
+
+  - name: config-provider
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: config-template
+    params:
+      - name: serviceAccount
+        default: #@ data.values.service_account
+    images:
+    - resource: image-scanner
+      name: image
+
+  
+  - name: config-writer
+    templateRef:
+      kind: ClusterTemplate
+      name: #@ config_writer()
+    params:
+      - name: serviceAccount
+        default: #@ data.values.service_account
+      - name: registry
+        value: #@ data.values.registry
+    configs:
+      - resource: config-provider
+        name: config
+
