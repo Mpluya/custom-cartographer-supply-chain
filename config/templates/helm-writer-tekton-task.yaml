@@ -41,6 +41,7 @@ spec:
         curl -sL -o source.tar.gz "${source}"
         tar --touch --no-overwrite-dir -xzf source.tar.gz 
 
+        ls -al 
         cd helm
         ../helm package .
 
