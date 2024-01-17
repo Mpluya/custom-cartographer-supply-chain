@@ -48,7 +48,7 @@ spec:
       default: ""
   steps:
     - name: ensure-base-branch-exists
-      image: dev.registry.tanzu.vmware.com/ootb-templates/scripting-base@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
+      image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
       env:
         - name: "HOME"
           value: "/tekton/home/"
