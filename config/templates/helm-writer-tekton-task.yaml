@@ -27,7 +27,7 @@ spec:
         
         set -o xtrace
         echo $(params.source-url)
-        helm help
+        helm -h
     - name: helm-publish
       image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
       env:
