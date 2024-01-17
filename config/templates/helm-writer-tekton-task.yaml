@@ -35,6 +35,9 @@ spec:
         chmod 700 get_helm.sh
         ./get_helm.sh
 
+        pwd
+        ls -al
+
         ./helm version
 
         wget -qO- $(params.source-url) | tar xvz -m
