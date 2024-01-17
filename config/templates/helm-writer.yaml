@@ -136,8 +136,8 @@ spec:
     apiVersion: tekton.dev/v1beta1
     kind: TaskRun
     metadata:
-      generateName: #@ data.values.workload.metadata.name + "-helm-config-writer-"
-      labels: #@ merge_labels({ "app.kubernetes.io/component": "helm-config-writer" })
+      generateName: #@ data.values.workload.metadata.name + "-helm-writer-"
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "helm-writer" })
     spec:
       serviceAccountName: #@ data.values.params.serviceAccount
       params:
@@ -164,4 +164,4 @@ spec:
           - name: namespace
             value: tap-tasks
           - name: name
-            value: git-writer
+            value: helm-writer

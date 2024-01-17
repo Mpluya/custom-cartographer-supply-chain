@@ -146,7 +146,7 @@ spec:
       - resource: image-provider
         name: image
 
-  - name: update-helm-image
+  - name: write-helm
     templateRef:
       kind: ClusterTemplate
       name: helm-writer-template
@@ -156,4 +156,7 @@ spec:
     images:
     - resource: image-scanner
       name: image
+    sources:
+    - resource: source-provider
+      name: source
 

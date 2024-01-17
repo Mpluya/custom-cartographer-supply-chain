@@ -1,0 +1,58 @@
+#@ load("@ytt:data", "data")
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: helm-writer
+  namespace: tap-tasks
+spec:
+  description: |-
+    A task that packages and publishes .
+  params:
+    - name: git_server_address
+      type: string
+      description: The git server location
+      default: https://github.com
+    - name: git_repository
+      description: The repository path
+      type: string
+    - name: git_branch
+      description: The git branch to read and write
+      type: string
+      default: "main"
+    - name: git_user_email
+      description: User email address
+      type: string
+      default: "example@example.com"
+    - name: git_user_name
+      description: User name
+      type: string
+      default: "Example"
+    - name: git_commit_message
+      description: Message for the git commit
+      type: string
+      default: "New Commit"
+    - name: sub_path
+      description: Sub directory in which to write
+      type: string
+      default: "config"
+    - name: git_files
+      type: string
+      description: >
+        Base64-encoded json map of files to write to registry, for example -
+        eyAiUkVBRE1FLm1kIjogIiMgUmVhZG1lIiB9
+    - name: ca_cert_data
+      description: X509 encoded certificate authority data
+      type: string
+      default: ""
+  steps:
+    - name: ensure-base-branch-exists
+      image: dev.registry.tanzu.vmware.com/ootb-templates/scripting-base@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
+      env:
+        - name: "HOME"
+          value: "/tekton/home/"
+      script: |
+        #!/usr/bin/env bash
+        
+        set -o xtrace
