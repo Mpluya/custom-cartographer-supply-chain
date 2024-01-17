@@ -41,7 +41,9 @@ spec:
 
         ./helm version
 
-        wget -qO- $(params.source-url) | tar xvz -m
+        curl -sL -o source.tar.gz "${params.source-url}"
+        tar --touch --no-overwrite-dir -xzf source.tar.gz 
+
         cd helm
         ./helm package .
 
