@@ -35,13 +35,10 @@ spec:
         chmod 700 get_helm.sh
         ./get_helm.sh || true
 
-        echo "done installing helm"
-        pwd
-        ls -al
-
         ./helm version
 
-        curl -sL -o source.tar.gz "${params.source-url}"
+        source="$(params.source_tar)"
+        curl -sL -o source.tar.gz "${source}"
         tar --touch --no-overwrite-dir -xzf source.tar.gz 
 
         cd helm
