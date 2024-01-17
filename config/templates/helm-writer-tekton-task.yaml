@@ -35,6 +35,7 @@ spec:
         chmod 700 get_helm.sh
         ./get_helm.sh
 
+        echo "done installing helm"
         pwd
         ls -al
 
