@@ -18,7 +18,7 @@ spec:
       type: string
   steps:
     - name: helm-package
-      image: docker.io/lachlanevenson/k8s-helm@sha256:5c792f29950b388de24e7448d378881f68b3df73a7b30769a6aa861061fd08ae
+      image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
       env:
         - name: "HOME"
           value: "/tekton/home/"
@@ -27,7 +27,17 @@ spec:
         
         set -o xtrace
         echo $(params.source-url)
-        helm -h
+
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        chmod 700 get_helm.sh
+        ./get_helm.sh
+        
+        helm version
+
+        cd `mktemp -d`
+        wget -qO- $(params.source-url) | tar xvz -m
+        helm package .
+
     - name: helm-publish
       image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
       env:
