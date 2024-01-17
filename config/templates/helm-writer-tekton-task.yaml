@@ -37,7 +37,7 @@ spec:
 
         ./helm version
 
-        source="$(params.source_tar)"
+        source="$(params.source-url)"
         curl -sL -o source.tar.gz "${source}"
         tar --touch --no-overwrite-dir -xzf source.tar.gz 
 
