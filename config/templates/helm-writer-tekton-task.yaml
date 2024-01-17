@@ -74,7 +74,6 @@ spec:
         
         set -o xtrace
         echo $(params.image)
-
-    volumes:
+  volumes:
     - name: source-dir
       emptyDir: {}
