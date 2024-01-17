@@ -24,9 +24,11 @@ spec:
           value: "/tekton/home/"
       script: |-
         #!/usr/bin/env bash
-        
+        set -o errexit
         set -o xtrace
         echo $(params.source-url)
+
+        cd `mktemp -d`
 
         curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
         chmod 700 get_helm.sh
@@ -34,7 +36,6 @@ spec:
 
         helm version
 
-        cd `mktemp -d`
         wget -qO- $(params.source-url) | tar xvz -m
         cd helm
         helm package .
