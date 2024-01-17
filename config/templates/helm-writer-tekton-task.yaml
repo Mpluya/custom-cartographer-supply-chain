@@ -42,7 +42,10 @@ spec:
         tar --touch --no-overwrite-dir -xzf source.tar.gz 
 
         ls -al 
-        cd app-golang-kaniko/helm
+        cd app-golang-kaniko
+
+        ls -al
+
         ../../helm package .
 
     - name: helm-publish
