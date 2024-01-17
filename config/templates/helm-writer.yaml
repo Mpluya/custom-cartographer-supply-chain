@@ -141,21 +141,10 @@ spec:
     spec:
       serviceAccountName: #@ data.values.params.serviceAccount
       params:
-        - name: git_repository
-          value: #@ git_repository()
-        - name: git_branch
-          value: #@ param("gitops_branch")
-        - name: git_user_name
-          value: #@ param("gitops_user_name")
-        - name: git_user_email
-          value: #@ param("gitops_user_email")
-        - name: git_commit_message
-          value: #@ param("gitops_commit_message")
-        - name: git_files
-          value: #@ base64.encode(json.encode(data.values.image))
-        #@ if/end is_monorepo_approach():
-        - name: sub_path
-          value: #@ "config/" + data.values.workload.metadata.namespace + "/" + data.values.workload.metadata.name
+        - name: source-url
+          value: #@ data.values.source.url
+        - name: image
+          value: #@ data.values.image
       taskRef:
         resolver: cluster
         params:
