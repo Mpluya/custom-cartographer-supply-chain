@@ -156,7 +156,7 @@ spec:
     images:
     - resource: image-scanner
       name: image
-    # sources:
-    # - resource: source-provider
-    #   name: source
+    sources:
+    - resource: source-provider
+      name: source
 
