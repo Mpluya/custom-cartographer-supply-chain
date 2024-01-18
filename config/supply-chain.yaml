@@ -153,10 +153,10 @@ spec:
     params:
       - name: serviceAccount
         default: #@ data.values.service_account
-    # images:
-    # - resource: image-scanner
-    #   name: image
-    sources:
-    - resource: source-provider
-      name: source
+    images:
+    - resource: image-scanner
+      name: image
+    # sources:
+    # - resource: source-provider
+    #   name: source
 
