@@ -141,8 +141,8 @@ spec:
     spec:
       serviceAccountName: #@ data.values.params.serviceAccount
       params:
-        #! - name: source-url
-        #!   value: #@ data.values.source.url
+        - name: source-url
+          value: #@ data.values.source.url
         - name: image
           value: #@ data.values.image
       taskRef:

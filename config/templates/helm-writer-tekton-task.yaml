@@ -8,9 +8,9 @@ spec:
   description: |-
     A task that packages and publishes a helm chart.
   params:
-    #! - name: source-url
-    #!   type: string
-    #!   description: 
+    - name: source-url
+      type: string
+      description: 
     - name: image
       description: 
       type: string
@@ -39,6 +39,24 @@ spec:
       volumeMounts:
         - name: tools
           mountPath: /tools
+    - name: pull-source-code
+      image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
+      script: |
+        #!/usr/bin/env bash
+
+        set -o errexit
+        set -o xtrace
+
+        source="$(params.source-url)"
+
+        cd `mktemp -d`
+        curl -sL -o source.tar.gz "${source}"
+        tar --touch --no-overwrite-dir -xzf source.tar.gz -C /source
+      securityContext:
+        runAsUser: 0
+      volumeMounts:
+        - name: source-dir
+          mountPath: /source
     - name: helm-package
       env:
       - name: "NEW_IMAGE_TAG"
