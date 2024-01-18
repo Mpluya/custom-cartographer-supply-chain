@@ -48,19 +48,19 @@ spec:
         cd /source
         ls -al 
 
-        export HELM_INSTALL_DIR="."
+        export HELM_INSTALL_DIR="/source/helm"
         export USE_SUDO=false
         curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
         chmod 700 get_helm.sh
         ./get_helm.sh || true
 
-        ./helm version
+        /source/helm version
 
         cd app-golang-kaniko/helm
 
         ls -al
 
-        ../../helm package .
+        /source/helm package .
       volumeMounts:
         - name: source-dir
           mountPath: /source
