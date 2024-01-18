@@ -57,15 +57,30 @@ spec:
         - name: tools
           mountPath: /tools
     - name: helm-publish
-      image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
       env:
-        - name: "HOME"
-          value: "/tekton/home/"
+      - name: "REGISTRY"
+        value: "cxscssa.azurecr.io"
+      image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
       script: |-
         #!/usr/bin/env bash
         
         set -o xtrace
         echo $(params.image)
+        
+        cd /source
+
+        for chart in $(find ./charts -name 'Chart.yaml'); do
+          chart_dir=$(dirname "$chart")
+          chart_name=$(yq eval '.name' "$chart")
+          chart_version=$(yq eval '.version' "$chart")
+
+          /tools/helm push "$chart_dir" "$chart_name" --version "$chart_version" oci://$REGISTRY/helm
+        done
+      volumeMounts:
+        - name: source-dir
+          mountPath: /source
+        - name: tools
+          mountPath: /tools
   volumes:
     - name: source-dir
       emptyDir: {}
