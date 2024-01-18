@@ -99,7 +99,7 @@ spec:
           chart_version=$(/tools/yq_linux_amd64 eval '.version' "$chart")
 
           chart_tgz=$chart_name-$chart_version.tgz
-          /tools/helm push /source/helm/$chart_tgz oci://$ACR_NAME/helm
+          /tools/helm push /source/helm/$chart_tgz oci://$REGISTRY/helm
         done
       volumeMounts:
         - name: source-dir
