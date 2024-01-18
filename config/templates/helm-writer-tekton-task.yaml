@@ -71,10 +71,6 @@ spec:
         set -o xtrace
 
         /tools/helm package /source/helm
-        
-        pwd
-        ls -al
-
       securityContext:
         runAsUser: 0
       volumeMounts:
@@ -94,7 +90,9 @@ spec:
         echo $(params.image)
         
         cd /source/helm
-        ls -al
+        ls -al /source
+        ls -al /source/helm
+        
         for chart in $(find . -name 'Chart.yaml'); do
           chart_dir=$(dirname "$chart")
           chart_name=$(/tools/yq_linux_amd64 eval '.name' "$chart")
