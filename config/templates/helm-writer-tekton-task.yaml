@@ -52,7 +52,7 @@ spec:
         ./get_helm.sh || true
         /source/tools/helm version
 
-        cd app-golang-kaniko/helm
+        cd helm
 
         ls -al
 
