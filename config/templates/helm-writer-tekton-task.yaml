@@ -69,7 +69,7 @@ spec:
         
         cd /source
 
-        for chart in $(find . -name 'Chart.yaml'); do
+        for chart in $(find ./helm -name 'Chart.yaml'); do
           chart_dir=$(dirname "$chart")
           chart_name=$(yq eval '.name' "$chart")
           chart_version=$(yq eval '.version' "$chart")
