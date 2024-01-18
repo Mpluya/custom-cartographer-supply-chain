@@ -72,7 +72,7 @@ spec:
         image_digest="${full_image#*@}"
  
         /tools/yq_linux_amd64 eval '.image.tag=$image_digest' -i /source/helm/values.yaml
-
+        cat /source/helm/values.yaml
         /tools/helm package /source/helm --destination /source/helm
       securityContext:
         runAsUser: 0
