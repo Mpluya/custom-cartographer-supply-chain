@@ -8,9 +8,9 @@ spec:
   description: |-
     A task that packages and publishes a helm chart.
   params:
-    # - name: source-url
-    #   type: string
-    #   description: 
+    #! - name: source-url
+    #!   type: string
+    #!   description: 
     - name: image
       description: 
       type: string
