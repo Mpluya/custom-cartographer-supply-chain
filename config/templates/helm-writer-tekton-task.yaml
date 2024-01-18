@@ -35,7 +35,10 @@ spec:
       volumeMounts:
         - name: source-dir
           mountPath: /source
-    - name: helm-package
+    - name: tools
+      env:      
+      - name: "YQ_VERSION"
+        value: "v4.40.5"
       image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
       script: |-
         #!/usr/bin/env bash
@@ -48,6 +51,25 @@ spec:
         chmod 700 get_helm.sh
         ./get_helm.sh || true
         /tools/helm version
+
+        curl -sL -o yq.tar.gz https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz
+        tar --touch --no-overwrite-dir -xzf yq.tar.gz -C /tools/yq
+
+        ls -al /tools/yq
+      securityContext:
+        runAsUser: 0
+      volumeMounts:
+        - name: source-dir
+          mountPath: /source
+        - name: tools
+          mountPath: /tools
+    - name: helm-package
+      image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
+      script: |-
+        #!/usr/bin/env bash
+        set -o errexit
+        set -o xtrace
+
         /tools/helm package /source/helm
       securityContext:
         runAsUser: 0
@@ -71,8 +93,8 @@ spec:
 
         for chart in $(find ./helm -name 'Chart.yaml'); do
           chart_dir=$(dirname "$chart")
-          chart_name=$(yq eval '.name' "$chart")
-          chart_version=$(yq eval '.version' "$chart")
+          chart_name=$(/tools/yq eval '.name' "$chart")
+          chart_version=$(/tools/yq eval '.version' "$chart")
 
           /tools/helm push "$chart_dir" "$chart_name" --version "$chart_version" oci://$REGISTRY/helm
         done
