@@ -71,6 +71,10 @@ spec:
         set -o xtrace
 
         /tools/helm package /source/helm
+        
+        pwd
+        ls -al
+        
       securityContext:
         runAsUser: 0
       volumeMounts:
