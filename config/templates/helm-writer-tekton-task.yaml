@@ -68,6 +68,8 @@ spec:
         set -o xtrace
 
         /tools/helm package /source/helm --destination /source/helm
+      securityContext:
+        runAsUser: 0
       volumeMounts:
         - name: source-dir
           mountPath: /source
