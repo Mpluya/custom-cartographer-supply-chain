@@ -41,27 +41,21 @@ spec:
         #!/usr/bin/env bash
         set -o errexit
         set -o xtrace
-      
-        cd /source
-        ls -al 
 
-        export HELM_INSTALL_DIR="/source/tools"
+        export HELM_INSTALL_DIR="/tools"
         mkdir -p tools
         curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
         chmod 700 get_helm.sh
         ./get_helm.sh || true
-        /source/tools/helm version
-
-        cd helm
-
-        ls -al
-
-        /source/tools/helm package .
+        /tools/helm version
+        /tools/helm package /source
       securityContext:
         runAsUser: 0
       volumeMounts:
         - name: source-dir
           mountPath: /source
+        - name: tools
+          mountPath: /tools
     - name: helm-publish
       image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:b31bb7c399a5bddd802f20891d4e2f493bb7183286cfb13feba8b5aaea33a3bd
       env:
@@ -74,4 +68,6 @@ spec:
         echo $(params.image)
   volumes:
     - name: source-dir
+      emptyDir: {}
+    - name: tools
       emptyDir: {}
