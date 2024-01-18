@@ -48,8 +48,7 @@ spec:
         cd /source
         ls -al 
 
-        export HELM_INSTALL_DIR="/source/helm"
-        export USE_SUDO=false
+        export HELM_INSTALL_DIR="/source"
         curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
         chmod 700 get_helm.sh
         ./get_helm.sh || true
@@ -61,6 +60,8 @@ spec:
         ls -al
 
         /source/helm package .
+      securityContext:
+        runAsUser: 0
       volumeMounts:
         - name: source-dir
           mountPath: /source
