@@ -93,8 +93,8 @@ spec:
 
         for chart in $(find ./helm -name 'Chart.yaml'); do
           chart_dir=$(dirname "$chart")
-          chart_name=$(/tools/yq eval '.name' "$chart")
-          chart_version=$(/tools/yq eval '.version' "$chart")
+          chart_name=$(/tools/yq_linux_amd64 eval '.name' "$chart")
+          chart_version=$(/tools/yq_linux_amd64 eval '.version' "$chart")
 
           /tools/helm push "$chart_dir" "$chart_name" --version "$chart_version" oci://$REGISTRY/helm
         done
