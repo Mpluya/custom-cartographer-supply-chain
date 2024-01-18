@@ -55,7 +55,7 @@ spec:
         curl -sL -o yq.tar.gz https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz
         tar --touch --no-overwrite-dir -xzf yq.tar.gz -C /tools
 
-        ls -al /tools/yq
+        ls -al /tools
       securityContext:
         runAsUser: 0
       volumeMounts:
