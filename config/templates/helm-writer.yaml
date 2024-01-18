@@ -143,8 +143,8 @@ spec:
       params:
         - name: source-url
           value: #@ data.values.source.url
-        - name: image
-          value: #@ data.values.image
+        # - name: image
+        #   value: #@ data.values.image
       taskRef:
         resolver: cluster
         params:
