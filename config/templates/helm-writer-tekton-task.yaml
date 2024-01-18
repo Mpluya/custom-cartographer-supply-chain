@@ -90,7 +90,7 @@ spec:
         echo $(params.image)
         
         cd /source/helm
-
+        ls -al
         for chart in $(find . -name 'Chart.yaml'); do
           chart_dir=$(dirname "$chart")
           chart_name=$(/tools/yq_linux_amd64 eval '.name' "$chart")
