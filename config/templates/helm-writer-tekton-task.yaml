@@ -96,7 +96,7 @@ spec:
           chart_name=$(/tools/yq_linux_amd64 eval '.name' "$chart")
           chart_version=$(/tools/yq_linux_amd64 eval '.version' "$chart")
 
-          chart_tgz=$chart_name+"-"+$chart_version+".tgz"
+          chart_tgz=$chart_name-$chart_version.tgz
           echo $chart_tgz
           /tools/helm push $chart_tgz oci://$ACR_NAME/helm
         done
