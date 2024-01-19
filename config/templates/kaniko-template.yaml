@@ -6,7 +6,7 @@ kind: ClusterConfigTemplate
 metadata:
   name: kaniko-template
 spec:
-  configPath: #@ data.values.config.url + .status.taskResults[?(@.name=="image_ref")].value
+  configPath: .status.taskResults[?(@.name=="image_ref")].value
   params:
     - name: serviceAccount
       default: default
