@@ -144,7 +144,7 @@ spec:
         - name: source-url
           value: #@ data.values.config.steps[0].env[0].value
         - name: image
-          value: #@ data.values.config.status.scannedImage
+          value: #@ data.values.config.image
       taskRef:
         resolver: cluster
         params:
