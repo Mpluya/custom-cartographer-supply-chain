@@ -107,7 +107,7 @@ spec:
     #!  we add it to the image labels
     #@ def merge_docker_extra_args():
     #@  extra_args = data.values.params.docker_build_extra_args
-    #@  if regexp.match("^([a-zA-Z0-9\/_-]+)(\@sha1:)?([0-9a-f]{40})$", data.values.configs.configsource.revision):
+    #@  if regexp.match("^([a-zA-Z0-9\/_-]+)(\@sha1:)?([0-9a-f]{40})$", data.values.configs.configsource.artifact.revision):
     #@    for val in extra_args:
     #@      if val.count("org.opencontainers.image.revision") > 0:
     #@        return extra_args
@@ -117,7 +117,7 @@ spec:
     #@     return extra_args
     #@  end
     #@
-    #@  extra_args.append("--label=org.opencontainers.image.revision={}".format(data.values.configs.configsource.revision))
+    #@  extra_args.append("--label=org.opencontainers.image.revision={}".format(data.values.configs.configsource.artifact.revision))
     #@  return extra_args
     #@ end
 
@@ -144,7 +144,7 @@ spec:
         - name: image
           value: #@ image()
         - name: source_tar
-          value: #@ data.values.configs.configsource.url
+          value: #@ data.values.configs.configsource.artifact.url
         - name: dockerfile
           value: #@ data.values.params.dockerfile
         - name: context
