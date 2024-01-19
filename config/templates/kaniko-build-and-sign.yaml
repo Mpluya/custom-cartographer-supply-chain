@@ -129,7 +129,7 @@ spec:
 
 
         source_url_revision="$(params.source_tar)"
-        echo -n "${source_url_revision}" | tee "$(results.source_url)"
+        echo -n "${source_url_revision}" | tee "$(results.source_url.path)"
         
   volumes:
     - name: docker-config
