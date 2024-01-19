@@ -144,7 +144,7 @@ spec:
         - name: source-url
           value: #@ data.values.source.url
         - name: image
-          value: #@ data.values.image
+          value: #@ data.values.configs.scannedconfigimage.image
       taskRef:
         resolver: cluster
         params:
