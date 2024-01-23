@@ -1,0 +1,55 @@
+label_propagation_exclusions: ["kapp.k14s.io/app", "kapp.k14s.io/association"]
+ca_cert_data: ""
+registry:
+  ca_cert_data: ""
+  server: cxscssa.azurecr.io
+  repository: tap-build/workloads
+external_delivery: true
+
+image_scanning_service_account_publisher: default
+image_scanning_service_account_scanner: default
+image_scanning_cli:
+  image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:675673a6d495d6f6a688497b754cee304960d9ad56e194cf4f4ea6ab53ca71d6
+image_scanner_template_name: image-vulnerability-scan-trivy
+gitops:
+  ssh_secret: tenant-gitops-ssh
+  server_address: ssh://git@github.com
+  repository_owner: Mpluya
+  repository_name: tap-azure-workload-config-repo
+  branch: main
+  repository_prefix:
+  username: supplychain
+  email: supplychain
+  commit_message: supplychain@cluster.local
+  commit_strategy: direct
+  pull_request:
+    server_kind:
+    commit_branch: ""
+    pull_request_title:
+    pull_request_body:
+
+scanning:
+  image:
+    policy: lax-scan-policy
+    template: trivy-private-image-scan-template
+  active_keychains: []
+  service_account:
+    publisher: default
+    scanner: default
+  workspace:
+    bindings: []
+    size: 4Gi
+  steps:
+    env_vars: []
+
+service_account: default
+git_implementation: go-git
+
+supported_workloads:
+- type: helm
+  cluster_config_template_name: config-template
+maven:
+  repository:
+    url: "https://repo.maven.apache.org/maven2"
+    secretRef:
+      name: ""
