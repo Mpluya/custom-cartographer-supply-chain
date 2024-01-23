@@ -1,0 +1,155 @@
+#@ load("@ytt:data", "data")
+
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterConfigTemplate
+metadata:
+  name: kaniko-template
+spec:
+  configPath: .status.taskResults
+  params:
+    - name: serviceAccount
+      default: default
+    - name: registry
+      default: {}
+    - name: dockerfile
+      default: ./Dockerfile
+    - name: docker_build_context
+      default: ./
+    - name: docker_build_extra_args
+      default: []
+
+  lifecycle: tekton
+
+  #@ label_exclusions = "[\"" + "\", \"".join(data.values.label_propagation_exclusions) + "\"]"
+  #@yaml/text-templated-strings
+  ytt: |
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:regexp", "regexp")
+
+    #@ def merge_labels(fixed_values):
+    #@   labels = {}
+    #@   if hasattr(data.values.workload.metadata, "labels"):
+    #@     exclusions = (@= label_exclusions @)
+    #@     for k,v in dict(data.values.workload.metadata.labels).items():
+    #@       if k not in exclusions:
+    #@         labels[k] = v
+    #@       end
+    #@     end
+    #@   end
+    #@   labels.update(fixed_values)
+    #@   return labels
+    #@ end
+
+    #@ def param(key):
+    #@   if not key in data.values.params:
+    #@     return None
+    #@   end
+    #@   return data.values.params[key]
+    #@ end
+
+    #@ def maven_param(key):
+    #@   if not key in data.values.params["maven"]:
+    #@     return None
+    #@   end
+    #@   return data.values.params["maven"][key]
+    #@ end
+
+    #@ def maven_repository_url():
+    #@   if maven_param("repository") and "url" in maven_param("repository"):
+    #@     return maven_param("repository")["url"]
+    #@   elif param("maven_repository_url"):
+    #@     return param("maven_repository_url")
+    #@   else:
+    #@     return None
+    #@   end   
+    #@ end
+
+    #@ def image():
+    #@   return "/".join([
+    #@    data.values.params.registry.server,
+    #@    data.values.params.registry.repository,
+    #@    "-".join([
+    #@      data.values.workload.metadata.name,
+    #@      data.values.workload.metadata.namespace,
+    #@    ])
+    #@   ])
+    #@ end
+
+    #@ def ca_cert_data():
+    #@   if "ca_cert_data" not in param("registry"):
+    #@     return ""
+    #@   end
+    #@
+    #@   return param("registry")["ca_cert_data"]
+    #@ end
+
+    #@ def correlationId():
+    #@   if hasattr(data.values.workload, "annotations") and hasattr(data.values.workload.annotations, "apps.tanzu.vmware.com/correlationid"):
+    #@     return data.values.workload.annotations["apps.tanzu.vmware.com/correlationid"]
+    #@   end
+    #@   url = ""
+    #@   if hasattr(data.values.workload.spec, "source"):
+    #@     if hasattr(data.values.workload.spec.source, "git"):
+    #@       url = data.values.workload.spec.source.git.url
+    #@     elif hasattr(data.values.workload.spec.source, "image"):
+    #@       url = data.values.workload.spec.source.image.split("@")[0]
+    #@     end
+    #@     url = url + "?sub_path=" + getattr(data.values.workload.spec.source, "subPath", "/")
+    #@   end
+    #@   if param("maven"):
+    #@     url = maven_repository_url() + "/" + maven_param("groupId").replace(".", "/") + "/" + maven_param("artifactId")  
+    #@   end
+    #@   return url
+    #@ end
+
+    #!  if the source revision matches the format of a git sha
+    #!  we add it to the image labels
+    #@ def merge_docker_extra_args():
+    #@  extra_args = data.values.params.docker_build_extra_args
+    #@  if regexp.match("^([a-zA-Z0-9\/_-]+)(\@sha1:)?([0-9a-f]{40})$", data.values.config.revision):
+    #@    for val in extra_args:
+    #@      if val.count("org.opencontainers.image.revision") > 0:
+    #@        return extra_args
+    #@      end
+    #@    end
+    #@  else:
+    #@     return extra_args
+    #@  end
+    #@
+    #@  extra_args.append("--label=org.opencontainers.image.revision={}".format(data.values.config.revision))
+    #@  return extra_args
+    #@ end
+
+    ---
+    apiVersion: tekton.dev/v1beta1
+    kind: TaskRun
+    metadata:
+      generateName: #@ data.values.workload.metadata.name + "-build-"
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "build" })
+      annotations:
+        apps.tanzu.vmware.com/correlationid: #@ correlationId()
+    spec:
+      serviceAccountName: #@ data.values.params.serviceAccount
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: namespace
+            value: tap-tasks
+          - name: name
+            value: kaniko-build
+      params:
+        - name: image
+          value: #@ image()
+        - name: source_tar
+          value: #@ data.values.config.url
+        - name: dockerfile
+          value: #@ data.values.params.dockerfile
+        - name: context
+          value: #@ data.values.params.docker_build_context
+        - name: extra_args
+          value: #@ merge_docker_extra_args()
+        - name: ca_cert_data
+          value: #@ ca_cert_data()

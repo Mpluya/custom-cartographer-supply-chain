@@ -1,0 +1,167 @@
+#@ load("@ytt:data", "data")
+
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterConfigTemplate
+metadata:
+  name: source-template
+spec:
+  params:
+    - name: serviceAccount
+      default: default
+    - name: gitImplementation
+      default: go-git
+  
+  configPath: .status.artifact
+
+  healthRule:
+    singleConditionType: Ready
+
+  #@ label_exclusions = "[\"" + "\", \"".join(data.values.label_propagation_exclusions) + "\"]"
+  #@yaml/text-templated-strings
+  ytt: |
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:yaml", "yaml")
+
+    #@ def merge_labels(fixed_values):
+    #@   labels = {}
+    #@   if hasattr(data.values.workload.metadata, "labels"):
+    #@     exclusions = (@= label_exclusions @)
+    #@     for k,v in dict(data.values.workload.metadata.labels).items():
+    #@       if k not in exclusions:
+    #@         labels[k] = v
+    #@       end
+    #@     end
+    #@   end
+    #@   labels.update(fixed_values)
+    #@   return labels
+    #@ end
+
+    #@ def param(key):
+    #@   if not key in data.values.params:
+    #@     return None
+    #@   end
+    #@   return data.values.params[key]
+    #@ end
+
+    #@ def maven_param(key):
+    #@   if not key in data.values.params["maven"]:
+    #@     return None
+    #@   end
+    #@   return data.values.params["maven"][key]
+    #@ end
+
+    #@ def maven_repository():
+    #@   if maven_param("repository") and "url" in maven_param("repository"):
+    #@     if "secretRef" in maven_param("repository") and "name" in maven_param("repository")["secretRef"] and maven_param("repository")["secretRef"]["name"] != "":
+    #@       # Both Maven repository URL and secretRef.name in Workload params
+    #@       return (maven_param("repository")["url"], maven_param("repository")["secretRef"]["name"])
+    #@     else:
+    #@       # Only Maven repository URL in TAP values (no secretRef.name)
+    #@       return (maven_param("repository")["url"], None)
+    #@     end
+    #@   elif param("maven_repository_url"):
+    #@     if param("maven_repository_secret_name"):
+    #@       # Both Maven repository url and secret_name in TAP values
+    #@       return (param("maven_repository_url"), param("maven_repository_secret_name"))
+    #@     else:
+    #@       # Only Maven repository URL in TAP values (no "secret_name")
+    #@       return (param("maven_repository_url"), None)
+    #@     end
+    #@   else:
+    #@     return (None, None)
+    #@   end   
+    #@ end
+
+    #@ def correlationId():
+    #@   if hasattr(data.values.workload, "annotations") and hasattr(data.values.workload.annotations, "apps.tanzu.vmware.com/correlationid"):
+    #@     return data.values.workload.annotations["apps.tanzu.vmware.com/correlationid"]
+    #@   end
+    #@   url = ""
+    #@   if hasattr(data.values.workload.spec, "source"):
+    #@     if hasattr(data.values.workload.spec.source, "git"):
+    #@       url = data.values.workload.spec.source.git.url
+    #@     elif hasattr(data.values.workload.spec.source, "image"):
+    #@       url = data.values.workload.spec.source.image.split("@")[0]
+    #@     end
+    #@     url = url + "?sub_path=" + getattr(data.values.workload.spec.source, "subPath", "/")
+    #@   end
+    #@   if param("maven"):
+    #@      (maven_repository_url, _) = maven_repository()
+    #@      url = maven_repository_url + "/" + maven_param("groupId").replace(".", "/") + "/" + maven_param("artifactId")  
+    #@   end
+    #@   return url
+    #@ end
+
+    #@ if/end param("maven"):
+    ---
+    apiVersion: source.apps.tanzu.vmware.com/v1alpha1
+    kind: MavenArtifact
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "source" })
+      annotations:
+        apps.tanzu.vmware.com/correlationid: #@ correlationId()
+    spec:
+      interval: 1m0s
+
+      repository:
+        #@ (maven_repository_url, maven_secret_name) = maven_repository()
+        url: #@ maven_repository_url
+        #@ if/end maven_secret_name != None:
+        secretRef:
+          name: #@ maven_secret_name
+
+      #@ if/end maven_param("artifactRetryTimeout"):
+      timeout: #@ maven_param("artifactRetryTimeout")
+
+      artifact:
+        artifactId: #@ maven_param("artifactId")
+        groupId: #@ maven_param("groupId")
+        version: #@ maven_param("version")
+
+        #@ if/end maven_param("type"):
+        type: #@ maven_param("type")
+
+        #@ if/end maven_param("classifier"):
+        classifier: #@ maven_param("classifier")
+
+
+    #@ if hasattr(data.values.workload.spec, "source"):
+    #@ if/end hasattr(data.values.workload.spec.source, "git"):
+    ---
+    apiVersion: source.toolkit.fluxcd.io/v1beta1
+    kind: GitRepository
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "source" })
+      annotations:
+        apps.tanzu.vmware.com/correlationid: #@ correlationId()
+    spec:
+      interval: 1m0s
+      url: #@ data.values.workload.spec.source.git.url
+      ref: #@ data.values.workload.spec.source.git.ref
+      gitImplementation: #@ data.values.params.gitImplementation
+      ignore: |
+        !.git
+      #@ if/end param("gitops_ssh_secret"):
+      secretRef:
+        name: #@ param("gitops_ssh_secret")
+    #@ end
+
+
+    #@ if hasattr(data.values.workload.spec, "source"):
+    #@ if/end hasattr(data.values.workload.spec.source, "image"):
+    ---
+    apiVersion: source.apps.tanzu.vmware.com/v1alpha1
+    kind: ImageRepository
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "source" })
+      annotations:
+        apps.tanzu.vmware.com/correlationid: #@ correlationId()
+    spec:
+      serviceAccountName: #@ data.values.params.serviceAccount
+      interval: 1m0s
+      image: #@ data.values.workload.spec.source.image
+    #@ end

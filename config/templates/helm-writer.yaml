@@ -142,9 +142,9 @@ spec:
       serviceAccountName: #@ data.values.params.serviceAccount
       params:
         - name: source-url
-          value: #@ data.values.source.url
+          value: #@ data.values.config.steps[0].env[0].value
         - name: image
-          value: #@ data.values.image
+          value: #@ data.values.config.image
       taskRef:
         resolver: cluster
         params:
