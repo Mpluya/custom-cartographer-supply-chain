@@ -18,7 +18,7 @@ We will use [Kapp](https://carvel.dev/kapp/) to install the supply chain onto th
 
 ### supply-chain-values.yaml
 
-Adjust these fields to match the installation of tap. Mainly these fields:
+Adjust these fields to match the installation of tap:
 
 ```
 registry:
