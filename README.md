@@ -25,6 +25,8 @@ registry:
   server: cxscssa.azurecr.io
   repository: tap-build/workloads
 
+image_scanning_cli:
+  image: cxscssa.azurecr.io/tap-1-7-0/tap-packages@sha256:675673a6d495d6f6a688497b754cee304960d9ad56e194cf4f4ea6ab53ca71d6
 ```
 
 ### Update the Supply Chain Templates
