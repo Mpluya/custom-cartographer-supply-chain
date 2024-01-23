@@ -127,10 +127,8 @@ spec:
 
         echo -n "${image}@${digest}" | tee "$(results.image_ref.path)"
 
-
         source_url_revision="$(params.source_tar)"
         echo -n "${source_url_revision}" | tee "$(results.source_url.path)"
-        
   volumes:
     - name: docker-config
       emptyDir: {}
