@@ -25,11 +25,6 @@ registry:
   server: cxscssa.azurecr.io
   repository: tap-build/workloads
 
-gitops:
-  ssh_secret: tenant-gitops-ssh
-  server_address: ssh://git@github.com
-  repository_owner: Mpluya
-  repository_name: tap-azure-workload-config-repo
 ```
 
 ### Update the Supply Chain Templates
