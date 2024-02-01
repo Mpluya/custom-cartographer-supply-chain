@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: kaniko-build
+  name: kaniko-build-and-sign
   namespace: tap-tasks
 spec:
   description: This task builds a simple Dockerfile with kaniko and pushes

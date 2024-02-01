@@ -139,7 +139,7 @@ spec:
           - name: namespace
             value: tap-tasks
           - name: name
-            value: kaniko-build
+            value: kaniko-build-and-sign
       params:
         - name: image
           value: #@ image()
