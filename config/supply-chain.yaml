@@ -92,8 +92,6 @@ spec:
       default: #@ scanner_sa_name()
     - name: image_scanning_cli
       value: #@ data.values.image_scanning_cli
-    - name: image_scanning_workspace_size
-      default: #@ data.values.scanning.workspace.size
     - name: image_scanning_active_keychains
       value: #@ data.values.scanning.active_keychains
     - name: image_scanning_workspace_bindings
